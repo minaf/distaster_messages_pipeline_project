@@ -22,6 +22,14 @@ from sklearn.model_selection import GridSearchCV
 
 
 def load_data(database_filepath):
+    '''
+    load_data
+    Load data from the database given its name
+    Input: 
+    database_filepath - filepath to read the dataframe
+    Returns:
+    df - dataframe read from the database
+    '''
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('disaster', engine)
     X = df['message']
@@ -30,6 +38,14 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    '''
+    tokenize
+    Separate text into clean words 
+    Input: 
+    text - string input
+    Returns:
+    clean_tokens - a list of clear tokens
+    '''
     words = word_tokenize(text)
     tokens = [w for w in words if w not in stopwords.words("english")]
     lemmatizer = WordNetLemmatizer()
@@ -39,6 +55,13 @@ def tokenize(text):
 
 
 def build_model():
+    '''
+    build_model
+    Build pipeline to be able to fit the model
+
+    Returns:
+    pipeline - pipeline consisting of transforming tokens and choosing the method
+    '''
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
@@ -52,12 +75,28 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    '''
+    evaluate_model
+    Evaluate model using test data
+    Input: 
+    model - ML model
+    X_test - input features in test data
+    y_test - expected output
+    category_names - names of all outputs
+    '''
     y_pred = model.predict(X_test)
     for ind, column in enumerate(category_names):
         print(classification_report(np.array(Y_test[column]), y_pred[:,ind]))
 
 
 def save_model(model, model_filepath):
+    '''
+    save_model
+    Save a created model to be used later
+    Input: 
+    model - ML model to be saved
+    model_filepath - the file location
+    '''
     pickle.dump(model, open(model_filepath, "wb"))
 
 
