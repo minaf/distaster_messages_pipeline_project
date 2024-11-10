@@ -1,24 +1,61 @@
 import sys
+import pandas as pd
+import numpy as np
+import pickle
+from sqlalchemy import create_engine
+
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+
+from sklearn.model_selection import train_test_split
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.metrics import classification_report
 
 
 def load_data(database_filepath):
-    pass
+    engine = create_engine('sqlite:///'+database_filepath)
+    df = pd.read_sql_table('disaster', engine)
+    X = df['message']
+    Y = df.iloc[:,4:40]
+    return X, Y, Y.columns.tolist()
 
 
 def tokenize(text):
-    pass
+    words = word_tokenize(text)
+    tokens = [w for w in words if w not in stopwords.words("english")]
+    lemmatizer = WordNetLemmatizer()
+    clean_tokens = [lemmatizer.lemmatize(w).lower().strip() for w in tokens]
+    return clean_tokens
+
 
 
 def build_model():
-    pass
+    pipeline = Pipeline([
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('mrf',  MultiOutputClassifier(RandomForestClassifier()))
+    ])
+    return pipeline
+
+
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    y_pred = model.predict(X_test)
+    for ind, column in enumerate(category_names):
+        print(classification_report(np.array(Y_test[column]), y_pred[:,ind]))
 
 
 def save_model(model, model_filepath):
-    pass
+    pickle.dump(model, open(model_filepath, "wb"))
 
 
 def main():
