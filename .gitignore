@@ -1,0 +1,4 @@
+*.pkl
+*.p
+*.db
+.DS_Store
