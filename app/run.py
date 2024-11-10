@@ -30,7 +30,7 @@ engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('disaster', engine)
 
 # load model
-model = joblib.load("../models/model_rf.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -39,14 +39,33 @@ model = joblib.load("../models/model_rf.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    # Five most common categories
+    df_imp = df.iloc[:, 4:40].sum().sort_values(ascending=False).apply(lambda x: x/df.shape[0]*100).head()
+    cat_names = list(df_imp.index)
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
+            'data': [
+                Bar(
+                    x=cat_names,
+                    y=df_imp
+                )
+            ],
+
+            'layout': {
+                'title': 'The most common categories in the training set',
+                'yaxis': {
+                    'title': "Percentage [%]"
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+                {
             'data': [
                 Bar(
                     x=genre_names,

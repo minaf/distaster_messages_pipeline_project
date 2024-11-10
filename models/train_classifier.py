@@ -18,6 +18,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
 
 
 def load_data(database_filepath):
@@ -43,7 +44,9 @@ def build_model():
         ('tfidf', TfidfTransformer()),
         ('mrf',  MultiOutputClassifier(RandomForestClassifier()))
     ])
-    return pipeline
+    parameters = {'mrf__estimator__n_estimators': [10, 20]}
+    cv = GridSearchCV(pipeline, parameters)
+    return cv
 
 
 
