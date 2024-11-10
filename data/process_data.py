@@ -3,12 +3,29 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+    '''
+    load_data
+    Load data from csv files and merge to a single pandas dataframe
+    Input: 
+    messages_filepath - filepath to messages csv file
+    categories_filepath - filepath to categories sv file
+    Returns:
+    df - dataframe merging categories and messages
+    '''
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories, left_on='id', right_on='id')
     return df
 
 def clean_data(df):
+    '''
+    clean_data
+    Clean data from the dataframe df
+    Input: 
+    df - dataframe 
+    Returns:
+    df - cleaned dataframe 
+    '''
     #  Split categories into separate category columns
     categories = df['categories'].str.split(";", expand = True)
     # use the first row to extract a list of new column names for categories.
@@ -30,12 +47,23 @@ def clean_data(df):
     
     # Remove duplicates
     df = df[~df.duplicated()]
+    # Remove non-binary categories
+    df_tmp = df.iloc[:, 4:40].applymap(lambda x: 1 if x==0 or x==1 else 0)
+    df.drop(df_tmp[df_tmp.sum(axis=1)!=36].index.tolist(), inplace = True)
     return df
 
 
 def save_data(df, database_filename):
+    '''
+    save_data
+    Save data from the dataframe df in the database_filename
+    Input: 
+    df - dataframe 
+    Returns:
+    database_filename - the filename to save df 
+    '''
     engine = create_engine('sqlite:///'+database_filename)
-    df.to_sql('disaster', engine, index=False) 
+    df.to_sql('disaster', engine, if_exists ='replace', index = False)
 
 
 def main():
